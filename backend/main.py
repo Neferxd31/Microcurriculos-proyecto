@@ -1,4 +1,5 @@
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Optional
@@ -6,6 +7,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from src.scanner import (
@@ -39,7 +41,8 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-OUTPUT_DIR = Path(__file__).parent.parent / "output"
+OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", Path(__file__).parent.parent / "output"))
+FRONTEND_DIST = Path(os.environ.get("FRONTEND_DIST", Path(__file__).parent.parent / "frontend" / "dist"))
 
 
 class GenerarRequest(BaseModel):
@@ -183,6 +186,14 @@ async def upload_microcurriculo(
   }
 
 
+# Servir el frontend (build de Vite) como SPA, después de registrar /api/*
+if FRONTEND_DIST.exists():
+  app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+else:
+  logger.warning(f"Frontend dist no encontrado en {FRONTEND_DIST}; sirviendo solo API")
+
+
 if __name__ == "__main__":
   import uvicorn
-  uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+  port = int(os.environ.get("PORT", "8000"))
+  uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

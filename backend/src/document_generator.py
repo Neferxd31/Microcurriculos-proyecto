@@ -1,9 +1,10 @@
 import logging
+import os
 import platform
 import shutil
+import subprocess
 from pathlib import Path
 
-from docx2pdf import convert
 from pypdf import PdfReader, PdfWriter
 
 from .footer_manager import apply_footer_to_pdf
@@ -15,6 +16,44 @@ from .scanner import (
 logger = logging.getLogger(__name__)
 
 IS_WINDOWS = platform.system() == "Windows"
+# En Linux (Railway) usamos LibreOffice headless. En Windows local seguimos
+# permitiendo docx2pdf (Word + COM) por compatibilidad con el flujo previo.
+SOFFICE_BIN = os.environ.get("SOFFICE_BIN", "soffice")
+
+
+def _convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
+  """Convert a single .docx to PDF using the best available backend."""
+  if IS_WINDOWS:
+    from docx2pdf import convert as _docx2pdf_convert
+    _docx2pdf_convert(str(docx_path), str(pdf_path))
+    return
+
+  # Linux/macOS: LibreOffice headless
+  out_dir = pdf_path.parent
+  result = subprocess.run(
+    [
+      SOFFICE_BIN,
+      "--headless",
+      "--nologo",
+      "--nofirststartwizard",
+      "--convert-to", "pdf",
+      "--outdir", str(out_dir),
+      str(docx_path),
+    ],
+    capture_output=True,
+    text=True,
+    timeout=120,
+  )
+  if result.returncode != 0:
+    raise RuntimeError(
+      f"soffice falló ({result.returncode}): {result.stderr.strip() or result.stdout.strip()}"
+    )
+
+  generated = out_dir / f"{docx_path.stem}.pdf"
+  if generated != pdf_path:
+    if pdf_path.exists():
+      pdf_path.unlink()
+    generated.rename(pdf_path)
 
 
 def generate_document(
@@ -60,7 +99,7 @@ def generate_document(
     for i, docx_path in enumerate(all_docx):
       pdf_path = temp_dir / f"{i:03d}_{docx_path.stem}.pdf"
       try:
-        convert(str(docx_path), str(pdf_path))
+        _convert_docx_to_pdf(docx_path, pdf_path)
         if pdf_path.exists():
           pdf_parts.append(pdf_path)
           logger.info(f"  Convertido: {docx_path.name} → PDF")

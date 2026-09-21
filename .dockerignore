@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.mypy_cache
+**/.venv
+**/venv
+**/env
+
+# Node
+**/node_modules
+**/dist
+**/.vite
+**/npm-debug.log*
+
+# Salidas locales
+output/
+**/*.pdf
+**/*.tmp
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Claude / docs
+.claude
+README.md

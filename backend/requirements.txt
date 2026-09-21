@@ -5,7 +5,9 @@ docxcompose==1.4.0
 lxml>=4.9.0
 Pillow>=10.0.0
 python-multipart>=0.0.9
-docx2pdf>=0.1.8
 reportlab>=4.0.0
 pypdf>=4.0.0
+# Solo Windows local: docx2pdf usa MS Word vía COM. En Linux/Railway se usa
+# LibreOffice headless (instalado en el Dockerfile).
+docx2pdf>=0.1.8; sys_platform == "win32"
 pywin32>=306; sys_platform == "win32"
