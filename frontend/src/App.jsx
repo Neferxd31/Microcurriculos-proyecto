@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import StudentForm from './components/StudentForm'
 import SearchBar from './components/SearchBar'
-import SemestreAccordion from './components/SemestreAccordion'
+import SemestreColumn from './components/SemestreColumn'
 import GenerateButton from './components/GenerateButton'
 import ProgressIndicator from './components/ProgressIndicator'
 import './App.css'
@@ -21,24 +21,22 @@ function App() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
 
-  // Filtrar semestres por búsqueda
-  const filteredSemestres = useMemo(() => {
-    if (!searchQuery.trim()) return semestres
+  // La búsqueda atenúa las materias que no coinciden sin mover la malla
+  const matches = useCallback(materia => {
     const q = searchQuery.toLowerCase().trim()
-    return semestres
-      .map(sem => ({
-        ...sem,
-        materias: sem.materias.filter(m =>
-          m.nombre.toLowerCase().includes(q)
-          || m.codigo.toLowerCase().includes(q)
-        ),
-      }))
-      .filter(sem => sem.materias.length > 0)
-  }, [semestres, searchQuery])
+    if (!q) return true
+    return materia.nombre.toLowerCase().includes(q) || materia.codigo.toLowerCase().includes(q)
+  }, [searchQuery])
 
-  const filteredCount = useMemo(() => {
-    return filteredSemestres.reduce((acc, s) => acc + s.materias.length, 0)
-  }, [filteredSemestres])
+  const matchCount = useMemo(() => {
+    return semestres.reduce((acc, s) => acc + s.materias.filter(matches).length, 0)
+  }, [semestres, matches])
+
+  const semestresMarcados = useMemo(() => {
+    return semestres
+      .map(s => ({ numero: s.numero, n: s.materias.filter(m => selectedMaterias.has(m.codigo)).length }))
+      .filter(s => s.n > 0)
+  }, [semestres, selectedMaterias])
 
   const fetchCurriculos = useCallback(async () => {
     try {
@@ -48,7 +46,7 @@ function App() {
         setSelectedCurriculo(data.curriculos[0].nombre)
       }
     } catch {
-      setError('Error cargando curriculos')
+      setError('No se pudieron cargar los pensums. Revisa que el servidor esté encendido.')
     }
   }, [selectedCurriculo])
 
@@ -63,7 +61,7 @@ function App() {
       setSemestres(data.semestres)
       setTotalMaterias(data.total_materias)
     } catch {
-      setError('Error cargando microcurriculos')
+      setError('No se pudieron cargar las materias de este pensum.')
     } finally {
       setLoading(false)
     }
@@ -93,7 +91,7 @@ function App() {
         setTimeout(() => setSuccess(null), 3000)
       }
     } catch {
-      setError('Error refrescando microcurriculos')
+      setError('No se pudieron actualizar las materias.')
     } finally {
       setLoading(false)
     }
@@ -145,14 +143,27 @@ function App() {
       link.remove()
       window.URL.revokeObjectURL(url)
 
-      setSuccess('Documento generado y descargado exitosamente')
+      setSuccess('PDF generado. Revisa tu carpeta de descargas.')
       setTimeout(() => setSuccess(null), 5000)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Error generando documento')
+      // con responseType 'blob' el detalle del backend llega como Blob
+      const data = err.response?.data
+      const detail = data instanceof Blob
+        ? await data.text().then(t => JSON.parse(t).detail).catch(() => null)
+        : data?.detail
+      setError(detail || 'No se pudo generar el PDF.')
     } finally {
       setGenerating(false)
     }
   }
+
+  const faltante = !nombre.trim()
+    ? 'Escribe el nombre del estudiante.'
+    : !codigo.trim()
+      ? 'Escribe el código estudiantil.'
+      : selectedMaterias.size === 0
+        ? 'Marca al menos una materia en la malla.'
+        : null
 
   const canGenerate = selectedMaterias.size > 0
     && nombre.trim().length > 0
@@ -161,150 +172,164 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <div className="header-brand">
-            <div className="brand-icon">UFPS</div>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">UFPS</span>
             <div>
-              <h1>Generador de Microcurriculos</h1>
-              <p className="subtitle">Programa de Ingenieria de Sistemas</p>
+              <p className="brand-programa">Ingeniería de Sistemas</p>
+              <h1 className="brand-titulo">Microcurrículos</h1>
             </div>
           </div>
           <button
-            className="btn btn-icon"
+            type="button"
+            className="btn-topbar"
             onClick={handleRefresh}
             disabled={loading}
-            title="Refrescar materias"
           >
-            <span className={`refresh-icon ${loading ? 'spin' : ''}`}>&#x21bb;</span>
+            <span className={loading ? 'spin' : ''} aria-hidden="true">&#x21bb;</span>
+            Actualizar materias
           </button>
         </div>
       </header>
 
-      <main className="app-main">
-        {/* Alertas */}
-        {error && (
-          <div className="alert alert-error">
-            <span>&#x2715; {error}</span>
-            <button className="alert-close" onClick={() => setError(null)}>&#x00d7;</button>
-          </div>
-        )}
-        {success && (
-          <div className="alert alert-success">
-            <span>&#x2713; {success}</span>
-            <button className="alert-close" onClick={() => setSuccess(null)}>&#x00d7;</button>
-          </div>
-        )}
-
-        {/* Selector de curriculo */}
-        {curriculos.length > 0 && (
-          <section className="section curriculo-section">
-            <h2 className="section-title">Curriculo</h2>
-            <div className="curriculo-grid">
+      <main className="workbench">
+        <aside className="rail">
+          <section className="panel">
+            <h2 className="panel-titulo">Pensum</h2>
+            <div className="pensums">
               {curriculos.map(c => (
                 <button
                   key={c.nombre}
-                  className={`curriculo-card ${selectedCurriculo === c.nombre ? 'curriculo-active' : ''}`}
+                  type="button"
+                  className={`pensum ${selectedCurriculo === c.nombre ? 'pensum-on' : ''}`}
+                  aria-pressed={selectedCurriculo === c.nombre}
                   onClick={() => setSelectedCurriculo(c.nombre)}
                 >
-                  <span className="curriculo-code">{c.nombre.replace('Curriculo ', '')}</span>
-                  <span className="curriculo-label">{c.nombre}</span>
-                  <span className={`curriculo-badge ${c.plantilla_presente ? 'badge-ok' : 'badge-warn'}`}>
-                    {c.plantilla_presente ? 'Listo' : 'Sin plantilla'}
+                  <span className="pensum-codigo">{c.nombre.replace('Curriculo ', '')}</span>
+                  <span className="pensum-estado">
+                    {c.plantilla_presente ? 'Plantilla lista' : 'Falta la plantilla'}
                   </span>
                 </button>
               ))}
+              <div className="pensum pensum-pronto" aria-disabled="true">
+                <span className="pensum-codigo">Nuevos pensums</span>
+                <span className="pensum-estado">Aquí se podrán agregar más adelante</span>
+                <span className="pronto">Próximamente</span>
+              </div>
             </div>
           </section>
-        )}
 
-        {/* Datos del estudiante */}
-        <section className="section">
-          <h2 className="section-title">Datos del Estudiante</h2>
-          <StudentForm
-            nombre={nombre}
-            setNombre={setNombre}
-            codigo={codigo}
-            setCodigo={setCodigo}
-          />
-        </section>
+          <section className="panel">
+            <h2 className="panel-titulo">Estudiante</h2>
+            <StudentForm
+              nombre={nombre}
+              setNombre={setNombre}
+              codigo={codigo}
+              setCodigo={setCodigo}
+            />
+          </section>
 
-        {/* Materias */}
-        <section className="section">
-          <div className="section-header-row">
-            <h2 className="section-title">Materias</h2>
-            <div className="toolbar-actions">
-              <button className="btn btn-sm btn-outline" onClick={selectAll} disabled={loading}>
-                Seleccionar todas
+          <section className="panel panel-resumen">
+            <p className="resumen-total">
+              <strong>{selectedMaterias.size}</strong>
+              <span>de {totalMaterias} materias marcadas</span>
+            </p>
+            {semestresMarcados.length > 0 && (
+              <ul className="resumen-semestres" aria-label="Materias marcadas por semestre">
+                {semestresMarcados.map(s => (
+                  <li key={s.numero}>
+                    <span>{['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][s.numero - 1]}</span>
+                    {s.n}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <GenerateButton
+              canGenerate={canGenerate}
+              generating={generating}
+              selectedCount={selectedMaterias.size}
+              onClick={handleGenerar}
+            />
+            {faltante && !generating && <p className="resumen-falta">{faltante}</p>}
+            {generating && (
+              <ProgressIndicator message="Convirtiendo y uniendo los documentos. Puede tardar unos minutos." />
+            )}
+
+            {error && (
+              <div className="aviso aviso-error" role="alert">
+                <p>{error}</p>
+                <button type="button" className="aviso-cerrar" onClick={() => setError(null)} aria-label="Cerrar aviso">&times;</button>
+              </div>
+            )}
+            {success && (
+              <div className="aviso aviso-ok" role="status">
+                <p>{success}</p>
+                <button type="button" className="aviso-cerrar" onClick={() => setSuccess(null)} aria-label="Cerrar aviso">&times;</button>
+              </div>
+            )}
+          </section>
+        </aside>
+
+        <section className="board">
+          <div className="board-head">
+            <div>
+              <h2 className="board-titulo">Plan de estudios {selectedCurriculo.replace('Curriculo ', '')}</h2>
+              <p className="board-ayuda">Toca una materia para incluirla en el documento.</p>
+            </div>
+            <div className="board-tools">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Buscar por nombre o código"
+                resultCount={searchQuery ? matchCount : null}
+              />
+              <button type="button" className="btn-linea" onClick={selectAll} disabled={loading}>
+                Marcar todas
               </button>
-              <button className="btn btn-sm btn-outline" onClick={deselectAll} disabled={loading}>
-                Deseleccionar
+              <button type="button" className="btn-linea" onClick={deselectAll} disabled={loading || selectedMaterias.size === 0}>
+                Limpiar
               </button>
             </div>
           </div>
 
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Buscar por nombre o codigo..."
-            resultCount={searchQuery ? filteredCount : null}
-          />
-
-          {/* Barra de progreso de seleccion */}
-          <div className="selection-bar">
-            <div className="selection-track">
-              <div
-                className="selection-fill"
-                style={{ width: totalMaterias ? `${(selectedMaterias.size / totalMaterias) * 100}%` : '0%' }}
-              />
+          <div className="importar-pronto" aria-disabled="true">
+            <svg viewBox="0 0 24 24" className="importar-icono" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <circle cx="9" cy="10" r="2" />
+              <path d="M21 16l-5-5-8 8" />
+            </svg>
+            <div className="importar-texto">
+              <p className="importar-titulo">Seleccionar desde una imagen <span className="pronto">Próximamente</span></p>
+              <p>Sube la foto del certificado de notas, elige el pensum y las materias se marcarán solas.</p>
             </div>
-            <span className="selection-text">
-              <strong>{selectedMaterias.size}</strong> / {totalMaterias} seleccionadas
-            </span>
+            <button type="button" className="btn-linea" disabled>Subir imagen</button>
           </div>
 
           {loading ? (
-            <div className="loading-container">
-              <ProgressIndicator message="Cargando materias..." />
+            <div className="board-cargando">
+              <ProgressIndicator message="Cargando materias…" />
             </div>
           ) : (
-            <div className="semestres-list">
-              {filteredSemestres.length === 0 && searchQuery ? (
-                <div className="empty-state">
-                  No se encontraron materias para &ldquo;{searchQuery}&rdquo;
-                </div>
-              ) : (
-                filteredSemestres.map(semestre => (
-                  <SemestreAccordion
-                    key={semestre.numero}
-                    semestre={semestre}
-                    selectedMaterias={selectedMaterias}
-                    onToggleMateria={toggleMateria}
-                    onToggleSemestre={toggleSemestre}
-                  />
-                ))
-              )}
+            <div className="malla">
+              {semestres.map(semestre => (
+                <SemestreColumn
+                  key={semestre.numero}
+                  semestre={semestre}
+                  selectedMaterias={selectedMaterias}
+                  matches={matches}
+                  onToggleMateria={toggleMateria}
+                  onToggleSemestre={toggleSemestre}
+                />
+              ))}
             </div>
           )}
-        </section>
-
-        {/* Boton generar */}
-        <div className="generate-section">
-          <GenerateButton
-            canGenerate={canGenerate}
-            generating={generating}
-            selectedCount={selectedMaterias.size}
-            onClick={handleGenerar}
-          />
-          {generating && (
-            <ProgressIndicator message="Generando PDF... esto puede tardar unos minutos" />
+          {!loading && searchQuery && matchCount === 0 && (
+            <p className="board-vacio">Ninguna materia coincide con &ldquo;{searchQuery}&rdquo;. Prueba con el código o con otra palabra del nombre.</p>
           )}
-        </div>
+        </section>
       </main>
-
-      <footer className="app-footer">
-        <p>UFPS &mdash; Programa de Ingenieria de Sistemas</p>
-      </footer>
     </div>
   )
 }

@@ -20,6 +20,7 @@ from src.scanner import (
 )
 from src.file_renamer import rename_all_in_semester
 from src.document_generator import generate_document
+from src.validator import validate_paths
 
 logging.basicConfig(
   level=logging.INFO,
@@ -117,6 +118,20 @@ def refresh_microcurriculos(curriculo: Optional[str] = None):
 
   result = scan_microcurriculos(curriculo)
   result["archivos_renombrados"] = renamed
+  return result
+
+
+@app.get("/api/validar")
+def validar_curriculo(curriculo: str):
+  """Revisa la cabecera de todos los microcurrículos de un currículo"""
+  base = get_curriculos_base_path() / curriculo
+  if not base.exists():
+    raise HTTPException(404, f"Currículo '{curriculo}' no encontrado")
+  paths = sorted(
+    p for p in (base / "microcurriculos").rglob("*.docx") if not p.name.startswith("~$")
+  )
+  result = validate_paths(get_plantilla_path(curriculo), paths, {p.name[:7] for p in paths})
+  result["total"] = len(paths)
   return result
 
 

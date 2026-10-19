@@ -19,8 +19,17 @@ logger = logging.getLogger(__name__)
 
 # Margen inferior para el pie de página
 FOOTER_Y = 1.2 * cm
-# Altura de las imágenes
+# Altura de la firma
 IMG_HEIGHT = 1.2 * cm
+# Altura del bloque con el nombre de la directora. Va aparte de la firma para
+# poder bajarlo sin tocar nada más: subir o bajar este número es lo único que
+# cambia el tamaño del nombre en el pie.
+NOMBRE_HEIGHT = 0.85 * cm
+# Banda blanca que borra el pie de página viejo. No puede invadir el cuerpo del
+# texto: los microcurrículos tienen 2.5 cm de margen inferior, así que un valor
+# mayor recorta por la mitad la última línea de cada página y borra el borde
+# inferior de las tablas.
+ERASE_HEIGHT = FOOTER_Y + IMG_HEIGHT
 
 
 def apply_footer_to_pdf(
@@ -40,7 +49,7 @@ def apply_footer_to_pdf(
   total_pages = len(reader.pages)
 
   # Pre-calcular dimensiones de imágenes
-  nombre_dims = _get_image_dims(nombre_path, target_height=IMG_HEIGHT) if nombre_path else None
+  nombre_dims = _get_image_dims(nombre_path, target_height=NOMBRE_HEIGHT) if nombre_path else None
   firma_dims = _get_image_dims(firma_path, target_height=IMG_HEIGHT) if firma_path else None
 
   for page_num, page in enumerate(reader.pages, start=1):
@@ -59,7 +68,7 @@ def apply_footer_to_pdf(
     # --- Borrar pie de página viejo: rectángulo blanco ---
     c.setFillColorRGB(1, 1, 1)
     c.setStrokeColorRGB(1, 1, 1)
-    c.rect(0, 0, page_width, FOOTER_Y + IMG_HEIGHT + 0.5 * cm, fill=1, stroke=0)
+    c.rect(0, 0, page_width, ERASE_HEIGHT, fill=1, stroke=0)
     # Restaurar color negro para texto
     c.setFillColorRGB(0, 0, 0)
     c.setStrokeColorRGB(0, 0, 0)
@@ -67,10 +76,12 @@ def apply_footer_to_pdf(
     # --- Imagen izquierda: Nombre.png ---
     if nombre_path and nombre_path.exists() and nombre_dims:
       w, h = nombre_dims
+      # se centra en la misma franja que la firma para que no quede desalineado
+      nombre_y = FOOTER_Y + (IMG_HEIGHT - NOMBRE_HEIGHT) / 2
       c.drawImage(
         str(nombre_path),
         margin_left,
-        FOOTER_Y,
+        nombre_y,
         width=w,
         height=h,
         preserveAspectRatio=True,

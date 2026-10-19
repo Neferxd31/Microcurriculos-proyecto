@@ -9,9 +9,11 @@ from pypdf import PdfReader, PdfWriter
 
 from .footer_manager import apply_footer_to_pdf
 from .scanner import (
+  get_curriculos_base_path,
   get_footer_images,
   get_plantilla_path,
 )
+from .validator import format_errors, validate_paths
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +81,17 @@ def generate_document(
 
   if not ordered_paths:
     raise ValueError("No se encontraron microcurrículos para los códigos proporcionados")
+
+  # Validar cabeceras antes de convertir: un dato faltante devuelve el documento desde Admisiones
+  all_codes = {
+    p.name[:7]
+    for p in (get_curriculos_base_path() / curriculo_name / "microcurriculos").rglob("*.docx")
+  }
+  validation = validate_paths(plantilla_path, ordered_paths, all_codes)
+  for name, warnings in validation["advertencias"].items():
+    logger.warning(f"  {name}: {'; '.join(warnings)}")
+  if validation["errores"]:
+    raise ValueError(format_errors(validation["errores"]))
 
   logger.info(f"Generando documento con {len(ordered_paths)} microcurrículos")
 

@@ -1,26 +1,27 @@
 function StudentForm({ nombre, setNombre, codigo, setCodigo }) {
   return (
-    <div className="form-row">
-      <div className="form-group">
-        <label htmlFor="nombre">Nombre completo</label>
+    <div className="form">
+      <label className="field">
+        <span>Nombre completo</span>
         <input
-          id="nombre"
           type="text"
-          placeholder="Ej: Juan Perez"
+          placeholder="Como aparece en el certificado"
+          autoComplete="off"
           value={nombre}
           onChange={e => setNombre(e.target.value)}
         />
-      </div>
-      <div className="form-group">
-        <label htmlFor="codigo">Codigo estudiantil</label>
+      </label>
+      <label className="field">
+        <span>Código estudiantil</span>
         <input
-          id="codigo"
           type="text"
-          placeholder="Ej: 1151234"
+          inputMode="numeric"
+          placeholder="1152260"
+          autoComplete="off"
           value={codigo}
           onChange={e => setCodigo(e.target.value)}
         />
-      </div>
+      </label>
     </div>
   )
 }

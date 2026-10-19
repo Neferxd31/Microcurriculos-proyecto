@@ -41,26 +41,6 @@ I:5  II:5  III:6  IV:11  V:10  VI:10  VII:17  VIII:15  IX:17  X:19
 La distribucion por semestre coincide exactamente con el pensum y no falta ni sobra
 ningun codigo.
 
-> ## AVISO — CONTENIDO PROVISIONAL SIN FUENTE
->
-> **Cuatro microcurriculos llevan contenido redactado por la herramienta, no tomado de
-> ningun documento del programa ni del Drive.** Se pusieron a peticion expresa para que
-> el PDF consolidado saliera sin celdas vacias, y estan pensados para revertirse.
->
-> | Codigo | Materia | Que se invento |
-> |---|---|---|
-> | `0150417` | ANALISIS FILOSOFICO | objetivos, 5 unidades, contenidos y bibliografia |
-> | `0150616` | ELECTIVA GENERAL III | objetivos, 5 unidades, contenidos y bibliografia |
-> | `0150719` | ELECTRONICA III | contenidos de las 7 unidades (los nombres de unidad si eran los del pensum) |
-> | `0150829` | ADMINISTRACION DE SALARIOS | bibliografia (6 titulos) |
->
-> Los temas son plausibles para esas asignaturas y los libros citados existen, pero
-> **ningun docente ni la coordinacion los ha aprobado**. No los presentes como oficiales.
-> Para volver al estado anterior, pide que se reviertan: los cuatro documentos originales
-> estan respaldados y la reversion es exacta.
->
-> Fecha: 21/09/2026.
-
 ## Estado de cada microcurriculo
 
 Auditoria del 21 de septiembre de 2026, despues de la sexta pasada de
@@ -70,16 +50,16 @@ repartir entre los docentes.
 
 | Estado | Cantidad |
 |---|---|
-| Completos (sin ningun pendiente) | 95 |
-| Con contenido y algun hueco | 3 |
-| Esqueleto (datos del pensum, contenido por diligenciar) | 17 |
+| Completos (sin ningun pendiente) | 91 |
+| Con contenido y algun hueco | 5 |
+| Esqueleto (datos del pensum, contenido por diligenciar) | 19 |
 | **Total** | **115** |
 
 ### Completos
 
 Tienen cabecera, objetivos, unidades, contenidos, metodologia y bibliografia.
 
-`0150110`, `0150111`, `0150112`, `0150113`, `0150114`, `0150210`, `0150211`, `0150212`, `0150213`, `0150214`, `0150310`, `0150311`, `0150312`, `0150313`, `0150314`, `0150315`, `0150410`, `0150411`, `0150412`, `0150413`, `0150414`, `0150415`, `0150416`, `0150417`, `0150419`, `0150510`, `0150511`, `0150512`, `0150513`, `0150514`, `0150515`, `0150516`, `0150517`, `0150518`, `0150519`, `0150607`, `0150611`, `0150612`, `0150613`, `0150614`, `0150615`, `0150616`, `0150620`, `0150621`, `0150716`, `0150717`, `0150718`, `0150719`, `0150721`, `0150722`, `0150723`, `0150725`, `0150727`, `0150732`, `0150733`, `0150734`, `0150735`, `0150738`, `0150739`, `0150811`, `0150813`, `0150816`, `0150818`, `0150820`, `0150821`, `0150822`, `0150823`, `0150825`, `0150829`, `0150830`, `0150831`, `0150835`, `0150837`, `0150910`, `0150911`, `0150915`, `0150919`, `0150921`, `0150923`, `0150924`, `0150927`, `0150929`, `0150931`, `0150932`, `0150933`, `0150936`, `0150937`, `0151014`, `0151016`, `0151017`, `0151032`, `0151035`, `0151036`, `0151037`, `0151038`
+`0150110`, `0150111`, `0150112`, `0150113`, `0150114`, `0150210`, `0150211`, `0150212`, `0150213`, `0150214`, `0150310`, `0150311`, `0150312`, `0150313`, `0150314`, `0150315`, `0150410`, `0150411`, `0150412`, `0150413`, `0150414`, `0150415`, `0150416`, `0150419`, `0150510`, `0150511`, `0150512`, `0150513`, `0150514`, `0150515`, `0150516`, `0150517`, `0150518`, `0150519`, `0150607`, `0150611`, `0150612`, `0150613`, `0150614`, `0150615`, `0150620`, `0150621`, `0150716`, `0150717`, `0150718`, `0150721`, `0150722`, `0150723`, `0150725`, `0150727`, `0150732`, `0150733`, `0150734`, `0150735`, `0150738`, `0150739`, `0150811`, `0150813`, `0150816`, `0150818`, `0150820`, `0150821`, `0150822`, `0150823`, `0150825`, `0150830`, `0150831`, `0150835`, `0150837`, `0150910`, `0150911`, `0150915`, `0150919`, `0150921`, `0150923`, `0150924`, `0150927`, `0150929`, `0150931`, `0150932`, `0150933`, `0150936`, `0150937`, `0151014`, `0151016`, `0151017`, `0151032`, `0151035`, `0151036`, `0151037`, `0151038`
 
 ### Con contenido y algun hueco
 
@@ -87,6 +67,8 @@ Tienen cabecera, objetivos, unidades, contenidos, metodologia y bibliografia.
 |---|---|---|---|---|
 | `0150418` | SOCIOANTROPOLOGIA | IV | CONTENIDOS POR UNIDADES | el microcurriculo de Socioantropologia del 015-01 trae los nombres de las 8 unidades pero marca el desglose como *(Contenido por desarrollar)* |
 | `0150622` | TECNICAS GERENCIALES Y DE NEGOCIACION | VI | CONTENIDOS POR UNIDADES | `1150718 Tecnicas gerenciales y de negociacion` solo trae los 11 titulos de unidad, que ya estaban |
+| `0150719` | ELECTRONICA III | VII | CONTENIDOS POR UNIDADES | es logica digital; la unica Electronica disponible (015-01 y 115-03) es de circuitos analogicos, no es la misma materia |
+| `0150829` | ADMINISTRACION DE SALARIOS | VIII | BIBLIOGRAFIA | la unica copia, en el Drive, es `150829 ESTÁ INCOMPLETO Administracion de salarios.docx`, sin bibliografia |
 | `0151030` | ADMON DE SO DE RED | X | CONTENIDOS POR UNIDADES | `150902 Sistemas Operativos II` del 015-01 marca el desglose como *(Contenido por desarrollar)* |
 
 ### Esqueleto — pendientes de conseguir con el docente o el archivo del programa
@@ -102,7 +84,9 @@ carpetas locales del 115-03 y 115-04 de este proyecto.
 
 | Codigo | Materia | Sem |
 |---|---|---|
+| `0150417` | ANALISIS FILOSOFICO | IV |
 | `0150420` | NUEVAS TECNOLOGIAS Y SOCIEDAD | IV |
+| `0150616` | ELECTIVA GENERAL III | VI |
 | `0150731` | ELECTRONICA DIGITAL II | VII |
 | `0150737` | FUNDAMENTOS DE ASTRONOMIA | VII |
 | `0150832` | LINGUISTICA COMPUTACIONAL | VIII |
